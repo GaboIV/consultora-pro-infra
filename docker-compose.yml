@@ -1,0 +1,66 @@
+# =====================================================================
+#  ConsultoraPro - Compose de DESARROLLO LOCAL
+# =====================================================================
+#  Este archivo COMPILA el codigo de ./backend y ./frontend (build),
+#  pensado para levantar todo el stack en tu maquina.
+#
+#  Requiere que backend/ y frontend/ esten clonados como carpetas
+#  hermanas (la estructura actual del proyecto).
+#
+#  Uso:
+#     cp .env.example .env     # rellena valores para local
+#     docker compose up -d --build
+#
+#  Para DESPLIEGUE en servidor usa docker-compose.deploy.yml (imagenes GHCR).
+# =====================================================================
+
+name: consultorapro_dev
+
+services:
+  # 1. Base de Datos MySQL
+  database:
+    image: mysql:8.0
+    container_name: consultorapro_dev_db
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-rootsecretpassword}
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-consultorapro_dev}
+      MYSQL_USER: ${MYSQL_USER:-user}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-user123}
+    ports:
+      - "${MYSQL_PORT:-3306}:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+
+  # 2. Servidor Backend (.NET Web API)
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: consultorapro_dev_backend
+    restart: unless-stopped
+    environment:
+      - ConnectionStrings__DefaultConnection=Server=database;Port=3306;Database=${MYSQL_DATABASE:-consultorapro_dev};User=${MYSQL_USER:-user};Password=${MYSQL_PASSWORD:-user123};
+      - Jwt__Key=${JWT_KEY:-ConsultoraPro_SuperSecretKey_2024_MinLength32Chars!}
+      - Jwt__Issuer=${JWT_ISSUER:-ConsultoraPro}
+      - Jwt__Audience=${JWT_AUDIENCE:-ConsultoraProApp}
+      - ASPNETCORE_ENVIRONMENT=${ASPNETCORE_ENVIRONMENT:-Development}
+    ports:
+      - "${BACKEND_PORT:-5000}:8080"
+    depends_on:
+      - database
+
+  # 3. Cliente Frontend (Angular SPA)
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: consultorapro_dev_frontend
+    restart: unless-stopped
+    ports:
+      - "${FRONTEND_PORT:-8080}:80"
+    depends_on:
+      - backend
+
+volumes:
+  mysql_data:

@@ -1,0 +1,26 @@
+# === Secretos / entorno (NUNCA versionar) ===
+.env
+.env.qa
+.env.prod
+.env.*.local
+*.pem
+*.key
+id_rsa*
+id_ed25519*
+
+# === Logs ===
+logs/
+*.log
+
+# === OS / IDE ===
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+
+# === Sub-proyectos (tienen su propio repo, NO se versionan aqui) ===
+backend/
+frontend/
+
+# NOTA: backend/ y frontend/ son repositorios Git independientes.
+# Este repo (infra) solo orquesta el despliegue y guarda la documentacion.

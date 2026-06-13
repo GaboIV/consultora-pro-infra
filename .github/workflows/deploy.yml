@@ -1,0 +1,88 @@
+# =====================================================================
+#  ConsultoraPro - INFRA - Orquestacion del despliegue
+# =====================================================================
+#  Este workflow NO compila codigo. Solo conecta por SSH al servidor,
+#  copia el docker-compose de despliegue y levanta/actualiza el stack
+#  bajando las imagenes ya construidas desde GHCR.
+#
+#  Se dispara de 2 formas:
+#   1) Automatico: cuando el repo backend o frontend termina de subir
+#      una imagen nueva, envia un "repository_dispatch" tipo "deploy".
+#   2) Manual: desde la pestana Actions -> Run workflow (workflow_dispatch),
+#      eligiendo el entorno (qa / production).
+#
+#  Los secretos (SSH_*, GHCR_*) viven en los Environments "qa" y
+#  "production" de ESTE repo. Ver docs/05-secretos-y-conexiones.md
+# =====================================================================
+
+name: Deploy
+
+on:
+  repository_dispatch:
+    types: [deploy]
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: "Entorno a desplegar"
+        type: choice
+        required: true
+        default: qa
+        options:
+          - qa
+          - production
+
+# Evita despliegues solapados sobre el mismo entorno
+concurrency:
+  group: deploy-${{ github.event.inputs.environment || github.event.client_payload.environment }}
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    name: Deploy a ${{ github.event.inputs.environment || github.event.client_payload.environment }}
+    runs-on: ubuntu-latest
+    # El Environment aporta los secretos correctos y (en production)
+    # puede exigir aprobacion manual antes de ejecutar.
+    environment: ${{ github.event.inputs.environment || github.event.client_payload.environment }}
+
+    steps:
+      - name: Checkout (compose de despliegue)
+        uses: actions/checkout@v4
+
+      - name: Copiar docker-compose.deploy.yml al servidor
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          port: ${{ secrets.SSH_PORT || 22 }}
+          source: "docker-compose.deploy.yml"
+          target: "${{ secrets.DEPLOY_PATH }}"
+
+      - name: Desplegar por SSH (pull + up)
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          port: ${{ secrets.SSH_PORT || 22 }}
+          script: |
+            set -e
+            cd "${{ secrets.DEPLOY_PATH }}"
+
+            # Login en GHCR para poder bajar imagenes privadas
+            echo "${{ secrets.GHCR_PAT }}" | docker login ghcr.io -u "${{ secrets.GHCR_USER }}" --password-stdin
+
+            # El archivo .env del servidor define IMAGE_TAG, puertos y secretos.
+            # Debe existir previamente (ver docs/06-preparacion-servidor.md).
+            if [ ! -f .env ]; then
+              echo "ERROR: falta el archivo .env en ${{ secrets.DEPLOY_PATH }}"
+              exit 1
+            fi
+
+            docker compose -f docker-compose.deploy.yml --env-file .env pull
+            docker compose -f docker-compose.deploy.yml --env-file .env up -d --remove-orphans
+
+            # Limpia imagenes viejas para no llenar el disco
+            docker image prune -f
+
+            docker compose -f docker-compose.deploy.yml --env-file .env ps
