@@ -6,7 +6,9 @@ Pasos para dejar un servidor (Ubuntu/Debian) listo para alojar ConsultoraPro.
 
 - Ubuntu 22.04+ / Debian 12+ (cualquier VPS sirve).
 - Acceso `root` o un usuario con `sudo` para la preparación inicial.
-- Puertos abiertos: `22` (SSH), `8080` (frontend), `5000` (backend API). Ajusta según tu `.env`.
+- Puertos abiertos: `22` (SSH), `80` y `443` (Nginx del host / proxy inverso). Los puertos
+  El frontend (`15001`) queda en `127.0.0.1` y el backend no publica puerto, así que **no**
+  se abren al exterior. Ver [07 — Nginx proxy inverso](07-nginx-proxy-inverso.md).
 
 ## Opción A — automática (script incluido)
 
@@ -78,8 +80,9 @@ COMPOSE_PROJECT_NAME=consultorapro_qa
 BACKEND_IMAGE=ghcr.io/gaboiv/consultora-pro-backend
 FRONTEND_IMAGE=ghcr.io/gaboiv/consultora-pro-frontend
 IMAGE_TAG=qa
-FRONTEND_PORT=8080
-BACKEND_PORT=5000
+BIND_HOST=127.0.0.1
+FRONTEND_PORT=15001
+# El backend NO publica puerto (solo red interna). No definas BACKEND_PORT.
 MYSQL_ROOT_PASSWORD=<password-root-seguro>
 MYSQL_DATABASE=consultorapro
 MYSQL_USER=consultorapro
@@ -103,8 +106,8 @@ Si usas un solo servidor para ambos, crea dos carpetas con su propio `.env` y pu
 distintos, y apunta `DEPLOY_PATH` de cada Environment a la carpeta correcta:
 
 ```
-/opt/consultorapro-qa     IMAGE_TAG=qa    FRONTEND_PORT=8080  BACKEND_PORT=5000
-/opt/consultorapro-prod   IMAGE_TAG=prod  FRONTEND_PORT=80    BACKEND_PORT=5001
+/opt/consultorapro-qa     IMAGE_TAG=qa    FRONTEND_PORT=15001
+/opt/consultorapro-prod   IMAGE_TAG=prod  FRONTEND_PORT=16001
 ```
 
 ## Primer despliegue manual (prueba antes de automatizar)
@@ -140,10 +143,23 @@ sudo systemctl restart ssh
 
 ## Firewall (opcional pero recomendado)
 
+**Con Nginx del host como proxy inverso** (recomendado, ver [07](07-nginx-proxy-inverso.md)):
+los contenedores se atan a `127.0.0.1`, así que **solo** abres 80/443:
+
+```bash
+sudo ufw allow 22/tcp        # SSH
+sudo ufw allow 80/tcp        # HTTP
+sudo ufw allow 443/tcp       # HTTPS
+sudo ufw enable
+```
+
+**Sin proxy inverso** (acceso directo al frontend): pon `BIND_HOST=0.0.0.0` en el `.env`
+y abre solo el puerto del frontend (el backend sigue sin exponerse: lo sirve el frontend
+vía `/api`):
+
 ```bash
 sudo ufw allow 22/tcp
-sudo ufw allow 8080/tcp
-sudo ufw allow 5000/tcp
+sudo ufw allow 15001/tcp
 sudo ufw enable
 ```
 

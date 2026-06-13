@@ -47,8 +47,8 @@ docker compose down
 ```
 
 Accesos por defecto:
-- Frontend: http://localhost:8080
-- Backend (API): http://localhost:5000
+- Frontend: http://localhost:15001
+- Backend (API): http://localhost:15000
 - MySQL: localhost:3306
 
 ### `docker-compose.deploy.yml` — servidor (QA/Prod)
@@ -72,8 +72,9 @@ Todas están documentadas en `.env.example`. Las más importantes:
 | Variable | Ejemplo | Notas |
 |----------|---------|-------|
 | `IMAGE_TAG` | `qa` / `prod` | Qué versión desplegar |
-| `FRONTEND_PORT` | `8080` | Puerto público del frontend |
-| `BACKEND_PORT` | `5000` | Puerto público de la API |
+| `BIND_HOST` | `127.0.0.1` | Interfaz de publicación (localhost tras proxy inverso) |
+| `FRONTEND_PORT` | `15001` | Puerto del frontend (único expuesto) |
+| `BACKEND_PORT` | `15000` | Solo en **dev local**; en despliegue el backend no publica puerto |
 | `MYSQL_ROOT_PASSWORD` | *(secreto)* | Password root de MySQL |
 | `MYSQL_PASSWORD` | *(secreto)* | Password del usuario de app |
 | `JWT_KEY` | *(secreto, ≥32 chars)* | Clave de firma de JWT |
@@ -109,9 +110,11 @@ de backup en [06](06-preparacion-servidor.md).
 
 ## Nota sobre comunicación frontend ↔ backend
 
-Hoy el frontend (Nginx, puerto 8080) y el backend (puerto 5000) se publican por
-separado. El Angular llama a la API por su URL. Si más adelante quieres un **único
-puerto público** (Nginx haciendo proxy de `/api` al backend), habría que añadir un
-bloque `location /api { proxy_pass http://backend:8080; }` en `frontend/nginx.conf`
-y ajustar la URL base de la API en Angular. No es necesario para que esto funcione,
-pero es una mejora recomendable a futuro.
+Solo se expone el **frontend** (`127.0.0.1:15001`, detrás del Nginx del host). El
+**backend no publica puerto**: vive en la red interna de Docker y el Nginx del propio
+contenedor frontend hace proxy de `/api/` → `backend:8080`. Así el Angular llama a la API
+con rutas relativas (`apiBaseUrl: '/api'`, mismo origen) y el backend queda oculto.
+
+El backend ya enruta todo bajo `/api/...`. Todo el detalle (config del Nginx del host,
+del contenedor, dominios, certbot, Forwarded Headers del .NET) está en
+[07 — Nginx proxy inverso](07-nginx-proxy-inverso.md).

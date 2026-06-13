@@ -15,6 +15,7 @@ Manual completo para construir, versionar y desplegar ConsultoraPro
 | 04 | [Ramas y entornos](04-ramas-y-entornos.md) | `qa` / `main`, protección de ramas, Environments |
 | 05 | [Secretos y conexiones](05-secretos-y-conexiones.md) | SSH, secretos, GHCR, manera segura de gestionarlos |
 | 06 | [Preparación del servidor](06-preparacion-servidor.md) | Provisionar el server, usuario, primer despliegue |
+| 07 | [Nginx proxy inverso](07-nginx-proxy-inverso.md) | Nginx del host delante de los contenedores, dominios, HTTPS |
 
 ## Resumen en 30 segundos
 

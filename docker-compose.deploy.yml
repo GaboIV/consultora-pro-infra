@@ -47,8 +47,10 @@ services:
       - Jwt__Issuer=${JWT_ISSUER}
       - Jwt__Audience=${JWT_AUDIENCE}
       - ASPNETCORE_ENVIRONMENT=${ASPNETCORE_ENVIRONMENT:-Production}
-    ports:
-      - "${BACKEND_PORT:-5000}:8080"
+    # SIN puerto publicado: el backend solo vive en la red interna 'internal'.
+    # El contenedor frontend lo alcanza como 'backend:8080' y hace proxy de /api.
+    # (Para depurar/migraciones puedes exponerlo temporalmente atandolo a
+    #  127.0.0.1, p.ej.:  ports: ["127.0.0.1:15000:8080"])
     depends_on:
       database:
         condition: service_healthy
@@ -61,7 +63,7 @@ services:
     container_name: ${COMPOSE_PROJECT_NAME:-consultorapro}_frontend
     restart: always
     ports:
-      - "${FRONTEND_PORT:-8080}:80"
+      - "${BIND_HOST:-127.0.0.1}:${FRONTEND_PORT:-15001}:80"
     depends_on:
       - backend
     networks:

@@ -1,0 +1,7 @@
+# Los scripts y archivos que corren en Linux deben mantener saltos de linea LF,
+# aunque se editen en Windows. Si no, fallan con "bad interpreter" en el servidor.
+*.sh   text eol=lf
+*.yml  text eol=lf
+*.yaml text eol=lf
+Dockerfile text eol=lf
+.env.example text eol=lf
