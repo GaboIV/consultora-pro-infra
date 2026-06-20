@@ -16,6 +16,8 @@ Manual completo para construir, versionar y desplegar ConsultoraPro
 | 05 | [Secretos y conexiones](05-secretos-y-conexiones.md) | SSH, secretos, GHCR, manera segura de gestionarlos |
 | 06 | [Preparación del servidor](06-preparacion-servidor.md) | Provisionar el server, usuario, primer despliegue |
 | 07 | [Nginx proxy inverso](07-nginx-proxy-inverso.md) | Nginx del host delante de los contenedores, dominios, HTTPS |
+| 08 | [Módulo Kanban](08-modulo-kanban.md) | Plan del Kanban por proyecto: tableros, columnas, tarjetas con código `REP-TAR-001`, permisos, frontend |
+| 09 | [Almacenamiento de archivos](09-almacenamiento-archivos.md) | Paso a paso: crear Azure Blob, configurar el `.env`, desplegar y verificar uploads/descargas con SAS |
 
 ## Resumen en 30 segundos
 

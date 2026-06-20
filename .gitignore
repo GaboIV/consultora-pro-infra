@@ -12,6 +12,10 @@ id_ed25519*
 logs/
 *.log
 
+# === Archivos subidos en desarrollo local (Storage:Local) ===
+data/uploads/
+backend/**/uploads/
+
 # === OS / IDE ===
 .DS_Store
 Thumbs.db

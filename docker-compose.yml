@@ -44,9 +44,15 @@ services:
       - Jwt__Key=${JWT_KEY:-ConsultoraPro_SuperSecretKey_2024_MinLength32Chars!}
       - Jwt__Issuer=${JWT_ISSUER:-ConsultoraPro}
       - Jwt__Audience=${JWT_AUDIENCE:-ConsultoraProApp}
+      - Encryption__Key=${ENCRYPTION_KEY:-ConsultoraPro_DevEncryptionKey_ChangeMe!}
       - ASPNETCORE_ENVIRONMENT=${ASPNETCORE_ENVIRONMENT:-Development}
+      # Almacenamiento local en dev: los archivos viven en un volumen persistente.
+      - Storage__Provider=Local
+      - Storage__Local__RootPath=/app/uploads
     ports:
       - "${BACKEND_PORT:-15000}:8080"
+    volumes:
+      - ${UPLOADS_HOST_PATH:-./data/uploads}:/app/uploads
     depends_on:
       - database
 
