@@ -156,6 +156,43 @@ chmod 600 .env           # solo el usuario deploy lo lee
 > El `.env` real está en `.gitignore`: nunca se sube. Si rotas la clave JWT o el password
 > de MySQL, lo editas en el servidor y reinicias (`docker compose ... up -d`).
 
+## Almacenamiento de archivos (Azure Blob en QA/Prod)
+
+Los archivos subidos (screenshots, adjuntos e imágenes de tarjetas) se guardan según el entorno:
+
+```
+┌────────────────────────────────────────────────────────────────────┐
+│ Local (dev)   →  filesystem en disco (Storage:Local:RootPath)       │
+│ QA / Prod     →  Azure Blob Storage, contenedor PRIVADO + SAS        │
+└────────────────────────────────────────────────────────────────────┘
+```
+
+- El **proveedor** lo decide `Storage__Provider` (`Local` | `AzureBlob`).
+- Las descargas en Azure usan **URLs SAS firmadas** de corta expiración
+  (`Storage:SignedUrlExpiryMinutes`, 15 min por defecto): el contenedor nunca es público.
+- La **connection string** de la Storage Account incluye la *account key* (necesaria para
+  firmar SAS). Es un **secreto de la aplicación**: va en el `.env` del servidor, nunca a Git.
+
+### Variables (en el `.env` del servidor)
+
+| Variable | Qué es | Ejemplo |
+|----------|--------|---------|
+| `STORAGE_CONNECTION_STRING` | Connection string de la Storage Account (con AccountKey) | `DefaultEndpointsProtocol=https;AccountName=...;AccountKey=...;EndpointSuffix=core.windows.net` |
+| `STORAGE_CONTAINER` | Contenedor privado por entorno | `consultorapro-qa` / `consultorapro-prod` |
+
+### Provisionar (una vez por entorno)
+
+```bash
+# Crear Storage Account y contenedor PRIVADO (sin acceso anónimo):
+az storage account create -n consultorapro<qa|prod> -g <grupo> -l <region> --sku Standard_LRS
+az storage container create --account-name consultorapro<qa|prod> -n consultorapro-<qa|prod> --public-access off
+# Obtener la connection string (cópiala al .env como STORAGE_CONNECTION_STRING):
+az storage account show-connection-string -n consultorapro<qa|prod> -g <grupo> -o tsv
+```
+
+> Usa **cuentas/contenedores separados** para QA y Prod. Rota la account key periódicamente
+> (Azure permite dos llaves para rotación sin downtime). Nunca commitees la connection string.
+
 ## Buenas prácticas de seguridad (resumen)
 
 - 🔑 **Una llave SSH por entorno**, usuario dedicado `deploy`, nunca `root`.

@@ -47,6 +47,10 @@ services:
       - Jwt__Issuer=${JWT_ISSUER}
       - Jwt__Audience=${JWT_AUDIENCE}
       - ASPNETCORE_ENVIRONMENT=${ASPNETCORE_ENVIRONMENT:-Production}
+      # Almacenamiento de archivos: Azure Blob (contenedor privado + SAS). Credenciales por secreto.
+      - Storage__Provider=AzureBlob
+      - Storage__AzureBlob__ConnectionString=${STORAGE_CONNECTION_STRING}
+      - Storage__AzureBlob__ContainerName=${STORAGE_CONTAINER}
     # SIN puerto publicado: el backend solo vive en la red interna 'internal'.
     # El contenedor frontend lo alcanza como 'backend:8080' y hace proxy de /api.
     # (Para depurar/migraciones puedes exponerlo temporalmente atandolo a
