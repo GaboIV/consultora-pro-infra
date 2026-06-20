@@ -46,6 +46,7 @@ services:
       - Jwt__Key=${JWT_KEY}
       - Jwt__Issuer=${JWT_ISSUER}
       - Jwt__Audience=${JWT_AUDIENCE}
+      - Encryption__Key=${ENCRYPTION_KEY}
       - ASPNETCORE_ENVIRONMENT=${ASPNETCORE_ENVIRONMENT:-Production}
       # Almacenamiento de archivos: Azure Blob (contenedor privado + SAS). Credenciales por secreto.
       - Storage__Provider=AzureBlob
