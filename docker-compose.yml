@@ -44,6 +44,13 @@ services:
       - Jwt__Key=${JWT_KEY:-ConsultoraPro_SuperSecretKey_2024_MinLength32Chars!}
       - Jwt__Issuer=${JWT_ISSUER:-ConsultoraPro}
       - Jwt__Audience=${JWT_AUDIENCE:-ConsultoraProApp}
+      # --- Autenticacion: credenciales y/o Google (reusa las env vars de Outline) ---
+      - Auth__CredentialsEnabled=${CREDENTIALS_ENABLED:-true}
+      - Auth__Google__Enabled=${GOOGLE_ENABLED:-false}
+      - Auth__Google__FrontendBaseUrl=${FRONTEND_BASE_URL:-http://localhost:4200}
+      - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID:-}
+      - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET:-}
+      - ALLOWED_DOMAINS=${ALLOWED_DOMAINS:-}
       - ASPNETCORE_ENVIRONMENT=${ASPNETCORE_ENVIRONMENT:-Development}
     ports:
       - "${BACKEND_PORT:-15000}:8080"
