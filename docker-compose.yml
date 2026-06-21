@@ -45,6 +45,13 @@ services:
       - Jwt__Issuer=${JWT_ISSUER:-ConsultoraPro}
       - Jwt__Audience=${JWT_AUDIENCE:-ConsultoraProApp}
       - Encryption__Key=${ENCRYPTION_KEY:-ConsultoraPro_DevEncryptionKey_ChangeMe!}
+      # --- Autenticacion: credenciales y/o Google (reusa las env vars de Outline) ---
+      - Auth__CredentialsEnabled=${CREDENTIALS_ENABLED:-true}
+      - Auth__Google__Enabled=${GOOGLE_ENABLED:-false}
+      - Auth__Google__FrontendBaseUrl=${FRONTEND_BASE_URL:-http://localhost:4200}
+      - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID:-}
+      - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET:-}
+      - ALLOWED_DOMAINS=${ALLOWED_DOMAINS:-}
       - ASPNETCORE_ENVIRONMENT=${ASPNETCORE_ENVIRONMENT:-Development}
       # Almacenamiento local en dev: los archivos viven en un volumen persistente.
       - Storage__Provider=Local
