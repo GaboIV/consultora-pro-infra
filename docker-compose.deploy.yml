@@ -59,6 +59,18 @@ services:
       - Storage__Provider=AzureBlob
       - Storage__AzureBlob__ConnectionString=${STORAGE_CONNECTION_STRING}
       - Storage__AzureBlob__ContainerName=${STORAGE_CONTAINER}
+      # --- Notificaciones por correo (ver docs/11-notificaciones.md) ---
+      # EMAIL_PROVIDER: Console | Smtp | Brevo | Resend
+      - Email__Provider=${EMAIL_PROVIDER:-Console}
+      - Email__From=${EMAIL_FROM:-no-reply@consultorapro.local}
+      - Email__FromName=${EMAIL_FROM_NAME:-ConsultoraPro}
+      - Email__FrontendBaseUrl=${FRONTEND_BASE_URL}
+      - Email__Smtp__Host=${EMAIL_SMTP_HOST:-smtp.gmail.com}
+      - Email__Smtp__Port=${EMAIL_SMTP_PORT:-587}
+      - Email__Smtp__User=${EMAIL_SMTP_USER:-}
+      - Email__Smtp__Password=${EMAIL_SMTP_PASSWORD:-}
+      - Email__Brevo__ApiKey=${BREVO_API_KEY:-}
+      - Email__Resend__ApiKey=${RESEND_API_KEY:-}
     # SIN puerto publicado: el backend solo vive en la red interna 'internal'.
     # El contenedor frontend lo alcanza como 'backend:8080' y hace proxy de /api.
     # (Para depurar/migraciones puedes exponerlo temporalmente atandolo a
