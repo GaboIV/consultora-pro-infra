@@ -107,6 +107,33 @@ Sección `Email` de `appsettings.json` (todo sobreescribible por env vars `Email
 
 > Gmail exige que `From` sea la misma cuenta autenticada. Límite ~500 correos/día — solo dev.
 
+### Uso temporal de Gmail en QA
+
+Para probar el flujo de correos en el servidor de QA sin dar de alta Brevo/Resend, se puede
+usar Gmail vía SMTP igual que en dev, pero configurado por env vars en el `.env` del servidor
+(las consume `docker-compose.deploy.yml`, ver líneas 62-73):
+
+```bash
+EMAIL_PROVIDER=Smtp
+EMAIL_FROM=tucuenta@gmail.com          # debe ser la MISMA cuenta autenticada
+EMAIL_FROM_NAME=ConsultoraPro (QA)
+EMAIL_SMTP_USER=tucuenta@gmail.com
+EMAIL_SMTP_PASSWORD=xxxxxxxxxxxxxxxx   # contraseña de aplicación de 16 caracteres
+# EMAIL_SMTP_HOST y EMAIL_SMTP_PORT ya traen default smtp.gmail.com:587
+```
+
+Pasos para la contraseña de aplicación: cuenta Google → Seguridad → verificación en 2 pasos →
+generar en <https://myaccount.google.com/apppasswords>. Luego redesplegar para que el backend
+recoja las nuevas env vars:
+
+```bash
+docker compose -f docker-compose.deploy.yml --env-file .env up -d
+```
+
+> Es una solución temporal: mismo límite de ~500 correos/día y el remitente queda como una
+> cuenta de Gmail personal, no el dominio propio. Para dejarlo definitivo en QA, migrar a
+> Brevo o Resend (sección siguiente).
+
 ### Producción con dominio propio (Brevo o Resend)
 
 Ambos requieren **verificar el dominio** (registros SPF/DKIM/DMARC en el DNS) para que el
