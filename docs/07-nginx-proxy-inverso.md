@@ -58,6 +58,9 @@ server {
     listen 80;
     server_name app.qa.tudominio.com;
 
+    # Subida de documentos de proyecto (hasta 50 MB por archivo). El default de Nginx es 1 MB.
+    client_max_body_size 60m;
+
     location / {
         proxy_pass http://127.0.0.1:15001;
         proxy_http_version 1.1;
